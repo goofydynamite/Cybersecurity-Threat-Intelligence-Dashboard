@@ -1,0 +1,51 @@
+aegis-financial-crime-detection/
+├── .github/
+│   └── workflows/
+│       └── python-app.yml      # (Optional) For CI/CD later
+├── data/
+│   └── .gitkeep                # Placeholder for datasets
+├── docs/
+│   ├── architecture.md         # High-level system design
+│   ├── api_reference.md        # API documentation
+│   └── setup_guide.md          # Detailed setup instructions
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── AlertFeed.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   └── ReportViewer.jsx
+│   │   ├── App.jsx
+│   │   └── index.js
+│   └── package.json
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   └── 02_gnn_model_development.ipynb
+├── powerbi/
+│   └── Aegis_SOC_Dashboard.pbix  # Your Power BI report file
+├── scripts/
+│   └── data_simulator.py       # Script to generate and stream fake data
+├── src/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── main.py             # FastAPI application entrypoint
+│   │   └── endpoints.py        # API routes
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   ├── base_agent.py       # Abstract base class for agents
+│   │   ├── behavioral_agent.py # RL agent logic
+│   │   ├── graph_agent.py      # GNN agent logic
+│   │   ├── investigator_agent.py # LLM RAG agent logic
+│   │   └── orchestrator.py     # Manages the agents and workflow
+│   ├── data_processing/
+│   │   ├── __init__.py
+│   │   └── kafka_consumer.py   # Consumes data and loads to Neo4j
+│   └── utils/
+│       ├── __init__.py
+│       ├── config.py           # Configuration management
+│       └── db_connector.py     # Neo4j connection handler
+├── .gitignore
+├── docker-compose.yml          # To run infrastructure (Kafka, Neo4j)
+├── LICENSE
+├── README.md                   # The main project README
+└── requirements.txt            # Python dependencies

@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+kafka-python
+neo4j
+langchain
+langchain-openai
+torch
+torch_geometric
+stable-baselines3
+faker
+numpy
+pandas
+python-dotenv
