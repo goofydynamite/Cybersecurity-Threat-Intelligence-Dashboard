@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Analytics Dashboard</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ApexCharts for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom styles for the dashboard -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark gray-blue background */
+            color: #e5e7eb;
+        }
+        .dashboard-card {
+            background-color: #1f2937; /* Lighter dark gray */
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .live-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+        .log-entry::-webkit-scrollbar { width: 4px; }
+        .log-entry::-webkit-scrollbar-track { background: #1f2937; }
+        .log-entry::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 2px; }
+        .apexcharts-tooltip {
+            background: #374151 !important;
+            color: #e5e7eb !important;
+            border: 1px solid #4b5563 !important;
+        }
+        /* Custom slider styles for dark theme */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 0 2px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #4b5563;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="p-4 lg:p-6">
+
+    <div class="max-w-screen-2xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl lg:text-3xl font-bold text-white">Cybersecurity Analytics Dashboard</h1>
+                <p class="text-sm text-gray-400">Model Performance & Threat Analysis (Inspired by Tableau & Power BI)</p>
+            </div>
+            <div class="flex items-center space-x-3 bg-red-900/50 text-red-300 border border-red-600 rounded-full px-4 py-2">
+                <div class="live-indicator"></div>
+                <span class="font-semibold text-sm">LIVE DATA STREAM</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+
+            <!-- Left Column: Analyst Control Center -->
+            <div class="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
+                <div class="dashboard-card p-4">
+                    <h2 class="text-lg font-semibold text-gray-200 mb-3">Analyst Control Center</h2>
+                    <label for="threshold-slider" class="block text-sm font-medium text-gray-300">Anomaly Threshold: <span id="threshold-value" class="font-bold text-blue-400">90</span></label>
+                    <input id="threshold-slider" type="range" min="50" max="100" value="90" class="w-full mt-2">
+                    <p class="text-xs text-gray-500 mt-2">Adjust to balance sensitivity vs. false positives.</p>
+                </div>
+                <div class="dashboard-card p-4">
+                    <h2 class="text-md font-semibold text-gray-200 mb-2">Model Performance (Today)</h2>
+                    <div class="space-y-3">
+                         <div>
+                            <div class="flex justify-between text-sm"><span class="font-medium text-green-400">True Positives</span><span id="true-positives" class="font-bold">0</span></div>
+                            <div class="w-full bg-gray-700 rounded-full h-2.5 mt-1"><div id="tp-bar" class="bg-green-500 h-2.5 rounded-full" style="width: 0%"></div></div>
+                        </div>
+                         <div>
+                            <div class="flex justify-between text-sm"><span class="font-medium text-yellow-400">False Positives</span><span id="false-positives" class="font-bold">0</span></div>
+                            <div class="w-full bg-gray-700 rounded-full h-2.5 mt-1"><div id="fp-bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="dashboard-card p-4">
+                    <h2 class="text-md font-semibold text-gray-200 mb-2">Pipeline Status</h2>
+                    <div class="grid grid-cols-2 gap-2 text-center">
+                        <div>
+                             <h4 class="text-xs text-gray-400">Events/sec</h4>
+                             <p id="events-per-sec" class="font-bold text-lg text-gray-200">0</p>
+                        </div>
+                        <div>
+                             <h4 class="text-xs text-gray-400">Avg Latency</h4>
+                             <p id="avg-latency" class="font-bold text-lg text-gray-200">0ms</p>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:col-span-3 xl:col-span-4 flex flex-col gap-6">
+                <!-- Top Row: Main Chart and KPIs -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="dashboard-card p-4 md:col-span-3">
+                        <h2 class="text-lg font-semibold text-gray-200 mb-2">AI Anomaly Score Over Time</h2>
+                        <div id="anomaly-score-chart"></div>
+                    </div>
+                    <div class="md:col-span-1 dashboard-card p-4 flex flex-col justify-between">
+                         <h2 class="text-lg font-semibold text-gray-200 mb-2">Anomaly Deep Dive</h2>
+                         <div id="anomaly-details" class="text-sm space-y-2 text-gray-400 flex-grow">
+                             <p>Click a flagged event in the log to investigate...</p>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Event Log and Supporting Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="dashboard-card p-4">
+                        <h2 class="text-lg font-semibold text-gray-200 mb-3">Live Event Stream</h2>
+                        <div id="event-log" class="log-entry overflow-y-auto h-80 pr-2 space-y-3"></div>
+                    </div>
+                    <div class="dashboard-card p-4">
+                         <h2 class="text-lg font-semibold text-gray-200 mb-3">Anomalous Events by Country</h2>
+                         <div id="country-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            let ANOMALY_THRESHOLD = 90;
+            const UPDATE_INTERVAL = 1500;
+            
+            // --- Mock Data ---
+            const users = ['admin', 'j.doe', 'guest', 'root', 'm.smith', 'api_user', 'service_acc'];
+            const ips = { 'USA': '207.97.227.239', 'Russia': '5.255.255.70', 'China': '101.32.104.51', 'Germany': '144.76.135.132', 'Brazil': '177.8.19.66', 'Nigeria': '102.89.22.3', 'India': '157.35.131.250', 'UK': '81.2.69.142', 'North Korea': '175.45.176.14'};
+            const countries = Object.keys(ips);
+            
+            // --- State Variables ---
+            let truePositives = 0, falsePositives = 0, totalAnomalies = 0;
+            let anomalyData = Array(40).fill(0);
+            let countryStats = {};
+            let lastEventCount = 0, totalEvents = 0;
+            const eventStore = new Map(); // Store for event data, linked by ID
+
+            // --- UI Elements ---
+            const thresholdSlider = document.getElementById('threshold-slider');
+            const thresholdValueEl = document.getElementById('threshold-value');
+            const truePositivesEl = document.getElementById('true-positives');
+            const falsePositivesEl = document.getElementById('false-positives');
+            const tpBar = document.getElementById('tp-bar');
+            const fpBar = document.getElementById('fp-bar');
+            const eventLogEl = document.getElementById('event-log');
+            const anomalyDetailsEl = document.getElementById('anomaly-details');
+
+            // --- Chart Instances ---
+            let anomalyScoreChart, countryChart;
+
+            function generateMockEvent() {
+                const country = countries[Math.floor(Math.random() * countries.length)];
+                const isTrulyMalicious = ['Russia', 'China', 'North Korea'].includes(country) || Math.random() < 0.1;
+                let anomalyScore;
+
+                if (isTrulyMalicious) {
+                    anomalyScore = Math.floor(Math.random() * (100 - 85 + 1)) + 85;
+                } else {
+                    anomalyScore = Math.random() < 0.05 ? Math.floor(Math.random() * 20) + 75 : Math.floor(Math.random() * 70);
+                }
+
+                return {
+                    id: `evt-${Date.now()}-${Math.random()}`, timestamp: new Date(), user: users[Math.floor(Math.random() * users.length)], ip: ips[country], country,
+                    type: 'Login Attempt', anomalyScore, isTrulyMalicious,
+                    details: { protocol: 'SSH', packetSize: `${Math.floor(Math.random()*500)} KB`, action: 'Auth Failed' }
+                };
+            }
+
+            function updateDashboard() {
+                const logEvent = generateMockEvent();
+                totalEvents++;
+
+                const isFlagged = logEvent.anomalyScore >= ANOMALY_THRESHOLD;
+                if (isFlagged) {
+                    totalAnomalies++;
+                    if (logEvent.isTrulyMalicious) truePositives++; else falsePositives++;
+                    
+                    if (countryStats[logEvent.country]) {
+                        countryStats[logEvent.country]++;
+                    } else {
+                        countryStats[logEvent.country] = 1;
+                    }
+
+                    const countryDataForChart = Object.keys(countryStats).map(country => ({ x: country, y: countryStats[country] })).sort((a, b) => b.y - a.y);
+                    countryChart.updateSeries([{ data: countryDataForChart }]);
+                }
+                
+                updatePerformanceMetrics();
+                addLogEntry(logEvent, isFlagged);
+                
+                anomalyData.push(logEvent.anomalyScore);
+                if (anomalyData.length > 40) anomalyData.shift();
+                anomalyScoreChart.updateSeries([{ data: anomalyData }]);
+            }
+            
+            function updatePerformanceMetrics() {
+                truePositivesEl.textContent = truePositives;
+                falsePositivesEl.textContent = falsePositives;
+                if (totalAnomalies > 0) {
+                    tpBar.style.width = `${(truePositives / totalAnomalies) * 100}%`;
+                    fpBar.style.width = `${(falsePositives / totalAnomalies) * 100}%`;
+                }
+            }
+
+            function addLogEntry(logEvent, isFlagged) {
+                const logItemDiv = document.createElement('div');
+                logItemDiv.className = `p-2.5 border-l-4 rounded-r-md text-xs cursor-pointer hover:bg-gray-700 ${isFlagged ? 'border-red-500 bg-red-900/20' : 'border-gray-600'}`;
+                
+                // Store the unique ID on the element itself.
+                logItemDiv.dataset.eventId = logEvent.id;
+                // Store the full data object in the map.
+                eventStore.set(logEvent.id, logEvent);
+
+                logItemDiv.innerHTML = `<div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold ${isFlagged ? 'text-red-400' : 'text-gray-300'}">${logEvent.type} from ${logEvent.country}</span>
+                                            <span class="font-mono text-gray-500">${logEvent.timestamp.toLocaleTimeString()}</span>
+                                        </div>
+                                        <div class="font-mono ${isFlagged ? 'text-red-400' : 'text-gray-400'}">AI Score: ${logEvent.anomalyScore}</div>`;
+
+                eventLogEl.prepend(logItemDiv);
+                
+                // Clean up old log entries to prevent the page from slowing down and prevent memory leaks.
+                if (eventLogEl.children.length > 50) {
+                    const oldLogItem = eventLogEl.lastChild;
+                    const oldEventId = oldLogItem.dataset.eventId;
+                    if (oldEventId) {
+                        eventStore.delete(oldEventId); // Remove from map
+                    }
+                    oldLogItem.remove(); // Remove from DOM
+                }
+            }
+
+            function showAnomalyDetails(logEvent) {
+                if (!logEvent) return; // Safety check
+                anomalyDetailsEl.innerHTML = `
+                    <h3 class="font-bold text-white">Event ID: ${logEvent.id.split('-')[1]}</h3>
+                    <p><strong>Timestamp:</strong> ${logEvent.timestamp.toLocaleString()}</p>
+                    <p><strong>User:</strong> ${logEvent.user}</p>
+                    <p><strong>Source IP:</strong> ${logEvent.ip} (${logEvent.country})</p>
+                    <p><strong>Protocol:</strong> ${logEvent.details.protocol}</p>
+                    <p><strong>Packet Size:</strong> ${logEvent.details.packetSize}</p>
+                    <p><strong>Action:</strong> ${logEvent.details.action}</p>
+                    <p class="mt-2"><strong>AI Score:</strong> <span class="font-bold text-xl ${logEvent.anomalyScore >= ANOMALY_THRESHOLD ? 'text-red-400' : 'text-blue-400'}">${logEvent.anomalyScore}</span></p>
+                `;
+            }
+
+            function initializeCharts() {
+                anomalyScoreChart = new ApexCharts(document.querySelector("#anomaly-score-chart"), {
+                    series: [{ name: 'Score', data: anomalyData }], chart: { type: 'line', height: 250, toolbar: { show: false }, background: 'transparent' },
+                    colors: ['#3b82f6'], stroke: { curve: 'smooth', width: 2 },
+                    grid: { borderColor: '#374151', strokeDashArray: 3 },
+                    xaxis: { labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false }},
+                    yaxis: { min: 0, max: 100, labels: { style: { colors: '#9ca3af' } } },
+                    tooltip: { theme: 'dark' },
+                    annotations: { yaxis: [{ y: ANOMALY_THRESHOLD, borderColor: '#ef4444', strokeDashArray: 2, label: { borderColor: '#ef4444', style: { color: '#fff', background: '#ef4444' }, text: 'Threshold' } }] }
+                });
+                anomalyScoreChart.render();
+
+                countryChart = new ApexCharts(document.querySelector("#country-chart"), {
+                    series: [{ name: 'Anomalies', data: [] }], chart: { type: 'bar', height: 280, toolbar: { show: false }, background: 'transparent' },
+                    colors: ['#ef4444'], plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '70%' } },
+                    dataLabels: { enabled: true, style: { colors: ['#fff'] }, formatter: (val) => val, textAnchor: 'start', offsetX: 5},
+                    xaxis: { labels: { style: { colors: '#9ca3af' } } },
+                    yaxis: { labels: { style: { colors: '#9ca3af' } } },
+                    grid: { borderColor: '#374151' }, tooltip: { theme: 'dark' }
+                });
+                countryChart.render();
+            }
+
+            // --- Event Listeners & Timers ---
+            thresholdSlider.addEventListener('input', (e) => {
+                ANOMALY_THRESHOLD = parseInt(e.target.value);
+                thresholdValueEl.textContent = ANOMALY_THRESHOLD;
+                anomalyScoreChart.updateOptions({ annotations: { yaxis: [{ y: ANOMALY_THRESHOLD, borderColor: '#ef4444', strokeDashArray: 2, label: { borderColor: '#ef4444', style: { color: '#fff', background: '#ef4444' }, text: 'Threshold' } }] }});
+            });
+
+            // DEFINITIVE FIX: Event Delegation. A single listener on the parent container.
+            eventLogEl.addEventListener('click', (e) => {
+                const logItem = e.target.closest('[data-event-id]');
+                if (logItem) {
+                    const eventId = logItem.dataset.eventId;
+                    const logEvent = eventStore.get(eventId);
+                    if (logEvent) {
+                        showAnomalyDetails(logEvent);
+                    }
+                }
+            });
+
+            setInterval(updateDashboard, UPDATE_INTERVAL);
+            setInterval(() => {
+                 document.getElementById('events-per-sec').textContent = ((totalEvents - lastEventCount) / 2).toFixed(1);
+                 lastEventCount = totalEvents;
+                 document.getElementById('avg-latency').textContent = `${Math.floor(Math.random() * 20) + 30}ms`;
+            }, 2000);
+
+            initializeCharts();
+        });
+    </script>
+</body>
+</html>
+
